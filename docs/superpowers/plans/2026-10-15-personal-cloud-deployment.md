@@ -8,14 +8,14 @@
 
 **Tech stack:** Python 3.12, existing requests/BeautifulSoup/lxml parsing, Flask + Gunicorn for two HTTP endpoints, google-cloud-firestore, Google identity token verification, a slim container.
 
-**Spec:** [Revised watcher design and complete current feature audit](../specs/2026-10-15-unified-slot-alerts-design.md). The feature tasks from the earlier draft are withdrawn because the user has clarified pause behavior, persistent auto-reservation and independent buttons. Detailed implementation tasks will be regenerated after review of the revised spec. Hosting fit is conditional on measurement; neither $0 nor a $3 annual ceiling has been demonstrated.
+**Spec:** [Revised watcher design and complete current feature audit](../specs/2026-10-15-unified-slot-alerts-design.md). The feature tasks from the earlier draft are withdrawn because the user has clarified pause behavior, persistent auto-reservation and watcher management. Detailed implementation tasks will be regenerated after review of the revised spec. Hosting fit is conditional on measurement; neither $0 nor a $3 annual ceiling has been demonstrated.
 
 ## Requirements and decisions
 
 - One owner, one set of sailing credentials, one Telegram private chat.
 - Target recurring cost $0 without relying on expiring trial credit. Do not purchase a VPS, paid backup plan, domain, static IP, or messaging subscription.
 - Preserve course and Navigation libre filters, separate lookaheads, optional wind alerts, partner handling, pending booking requests and current reservation.
-- Use optionally named Watchers with distinct Course/Nav types, filters, enabled state and persistent automatic reservation on/off. Pause stops monitoring, scheduled notifications and automatic reservation. Provide independent Reserve/Cancel and Start/Stop auto-reserve buttons with verified outcome feedback; unsupported source flows remain explicitly incomplete. Remove p1–p9 and automatic reservation swaps. Preserve source-specific quotas and existing reservations. No application feature has been changed yet.
+- Use optionally named Watchers with distinct Course/Nav types, filters, enabled state and persistent automatic reservation on/off. Pause stops monitoring, scheduled notifications and automatic reservation. Notification cards have Reserve/Cancel and Manage watcher; watcher pause/start, auto-reserve on/off and deletion live inside management. Deleting a watcher keeps reservations. Add reservation recap, current availability and watcher-match queries with explicit source coverage and freshness. Unsupported source flows remain explicitly incomplete. Remove p1–p9 and automatic reservation swaps. Preserve source-specific quotas and existing reservations. No application feature has been changed yet.
 - Keep Telegram. WhatsApp is not a cost-free drop-in replacement for unattended alerts.
 - An unpaid hosting account or sailing membership must not prevent offline implementation. Track cloud availability and sailing entitlement separately.
 - Read-only deployment first. No booking until live entitlement is verified and the owner intentionally enables it.
