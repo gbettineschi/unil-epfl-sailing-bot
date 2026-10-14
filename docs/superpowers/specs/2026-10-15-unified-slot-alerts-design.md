@@ -112,7 +112,10 @@ The result should improve predictability: one watcher controls one set of filter
 - Remove automatic reservation swaps and priority-based replacement entirely.
 - Auto-reserve stays on after a successful booking until the user switches it off; this replaces the earlier draft's automatic turn-off behavior.
 - A watcher notification has two primary controls: Reserve/Cancel reservation and Manage watcher. Watcher pause/start, auto-reserve on/off and deletion live inside Manage watcher, not on the notification itself.
-- Provide a reservation recap, all current availability, and current availability matching one watcher. Browsing never enables automation or books anything by itself.
+- `/slots` is the single availability browser, with optional Filter by watcher. There is no separate `/matches` command or matching-results screen.
+- Slots, watcher-filtered slots and Reservations use the same Previous week / Next week navigation.
+- `/watchers` offers Add watcher and a selectable watcher list. Selecting a watcher opens exactly the same management panel as Manage watcher under an alert. Show matching availability opens the shared Slots view filtered by that watcher.
+- Both a slot and a watcher have a `type`: Course or Navigation libre. Browsing never enables automation or books anything by itself.
 
 ## Proposed data model
 
@@ -122,7 +125,7 @@ The result should improve predictability: one watcher controls one set of filter
 | --- | --- | --- |
 | `id` | string | Stable identity, unrelated to optional display name |
 | `name` | string or null | Optional; otherwise display a short summary of filters |
-| `kind` | enum: `course`, `free_sailing` | Choose one actual source type for v1; show only relevant filters |
+| `type` | enum: `course`, `free_navigation` | Course or Navigation libre; choose one type for v1 and show only relevant filters |
 | `enabled` | bool | Per-watcher running/paused state |
 | `auto_reserve` | bool, default false | Persistent user preference; booking success does not change it |
 | `filters` | typed course or Nav filter object | Common date/time bounds plus source-specific criteria |
@@ -133,7 +136,7 @@ Fixed dates and horizon intersect. Expired date-bounded watchers become inactive
 
 ### Opportunity / slot
 
-Shared fields: stable source-qualified `id: str`, `kind: enum`, `start/end: aware datetime|null`, `availability: available|full|booked_by_me|unknown`, `url: str`, `last_verified_at: datetime|null`, and implemented reserve/cancel capabilities.
+Shared fields: stable source-qualified `id: str`, `type: course|free_navigation`, `start/end: aware datetime|null`, `availability: available|full|booked_by_me|unknown`, `url: str`, `last_verified_at: datetime|null`, and implemented reserve/cancel capabilities. A slot has exactly one type; a watcher's type is a matching condition against that property. Type selects the relevant source rules without requiring separate browsing or watcher-management interfaces.
 
 Course detail fields: title/course type, instructor, level, capacity and remaining places if reliably parseable. Nav detail fields: boat/support, partner requirement and `form: session|availability_window`. Source metadata retains the real upstream identifiers.
 
@@ -141,7 +144,7 @@ A calendar interval must not be auto-booked as though it were a discrete session
 
 ### Reservation and operational state
 
-Reservation: `id`, `slot_id`, `kind`, `status: pending|confirmed|cancelled|completed|uncertain`, `origin: manual_button|automatic|website`, `watcher_ids`, optional partner/provider reference, timestamps. Do not assume the course quota equals the Nav quota or that missing local state proves no reservation exists.
+Reservation: `id`, `slot_id`, `type` inherited from its slot, `status: pending|confirmed|cancelled|completed|uncertain`, `origin: manual_button|automatic|website`, `watcher_ids`, optional partner/provider reference, timestamps. Do not assume the course quota equals the Nav quota or that missing local state proves no reservation exists.
 
 Operational state: global pause, watcher's enabled/auto flags, per-watcher notification history, confirmed reservations, mutation records, manual cancellation exclusions, Telegram message references and source health. The configuration contains credential references, default partner and optional wind settings; secrets never appear in button payloads.
 
@@ -171,7 +174,9 @@ Show the watcher name or generated summary and effective automation status in th
 | Turn auto-reserve off / Turn auto-reserve on | Change only this watcher's auto-reserve preference; retain its running/paused state and existing bookings. |
 | Delete watcher | Stop and remove this watcher. Existing reservations remain accessible in Reservations. |
 
-Also provide Show matches, name/filter editing and Back within watcher management. Show matches uses the same read-only query as `/matches`. Delete has explicit feedback that reservations were kept. A deletion marker invalidates old callbacks; deleted watchers disappear from active lists and cannot be resurrected by an old button. Other watchers, including overlapping ones, remain unchanged. Already-issued mutations must be resolved or marked uncertain before deletion is acknowledged; deletion never triggers a compensating cancellation. Old reservation cards retain valid reservation controls, but display Watcher deleted and remove management controls.
+Also provide Show matching availability, name/filter editing and Back within watcher management. This is one shared Telegram message panel whether opened from `/watchers`, an alert or a reservation card; it does not require a separate web modal or app. Show matching availability opens the same Slots view as Slots → Filter by watcher → select this watcher. Preserve a browsing week supplied by the caller; entry from `/watchers` or an alert defaults to the current week.
+
+Delete has explicit feedback that reservations were kept. A deletion marker invalidates old callbacks; deleted watchers disappear from active lists and cannot be resurrected by an old button. Other watchers, including overlapping ones, remain unchanged. Already-issued mutations must be resolved or marked uncertain before deletion is acknowledged; deletion never triggers a compensating cancellation. Old reservation cards retain valid reservation controls, but display Watcher deleted and remove management controls. A filtered Slots view for a deleted watcher offers Show all slots and cannot silently substitute another watcher.
 
 - **Reserve:** recheck current availability/entitlement/quota, issue at most one mutation, and confirm against the website. Update the card to Reserved and show Cancel reservation only after confirmation. If availability is gone, say No longer available. Other failures need their actual reason; a timeout is not proof the slot is gone.
 - **Cancel reservation:** show the precise reservation and a confirmation action, then cancel and verify. On success, update to Cancelled and expose Reserve again when the slot remains reservable. If cancellation fails, keep the real reservation state and explain why; never toggle the button optimistically.
@@ -191,7 +196,7 @@ This is separate from no-swaps: no automatic action ever cancels a reservation. 
 
 ## Automatic booking, ongoing monitoring and messages
 
-1. Fetch required sources once where possible and normalize opportunities with their distinct kind and capabilities.
+1. Fetch required sources once where possible and normalize opportunities with their type and source capabilities.
 2. Apply one matcher for a watcher's notifications and auto-reserve. Never apply different global and request filters as the current bot does.
 3. New watchers preview current matches with auto-reserve off. Explicitly enabling it authorizes currently matching slots; migrated watchers never silently arm themselves.
 4. Auto-reserve off: notify with Reserve plus Manage watcher. Auto-reserve on: attempt an allowed reservation, then send a confirmed reservation card with Cancel reservation plus Manage watcher. State the auto-reserve setting in the message. If blocked or failed, send the outcome and the appropriate remaining actions.
@@ -215,24 +220,49 @@ Stage 1 is partial delivery of the full in-bot reservation experience, not proof
 
 Telegram supports callback and URL buttons. Use opaque short action IDs and no credentials in payloads. [Telegram button API](https://core.telegram.org/bots/api#inlinekeyboardbutton).
 
-## On-demand commands
+## Shared weekly browser and watcher panel
 
 | Command | Result |
 | --- | --- |
-| `/reservations` | Upcoming reservations across supported sources, including website-made bookings where source reconciliation is supported. Show time, source/type, activity/boat, reservation status and source freshness. Confirmed reservations have Cancel reservation; associated watchers are accessible through Manage watcher. |
-| `/slots` | All currently available future sailing opportunities within the next 21 days, across the supported Course/Nav sources, independent of watcher filters. Show the horizon and source coverage. |
-| `/matches <watcher-id>` | Currently available opportunities satisfying that watcher's exact filters and horizon, even when that watcher is paused or auto-reserve is off. Use the same matcher as background alerts. |
-| `/watchers` | List named/unnamed watchers with short stable IDs, filter summaries, running/paused status and auto-reserve preference; open Manage watcher from each entry. |
+| `/slots` | Open the current week's available slots across supported Course/Nav sources, initially without a watcher filter. Filter by watcher opens a picker; choosing one filters this same view. |
+| `/reservations` | Open the current week's reservations across supported sources, including website-made bookings where source reconciliation is supported. Use the same week-navigation controls as Slots. |
+| `/watchers` | Show Add watcher and a selectable list of named/unnamed watchers, with filter summaries, running/paused status and auto-reserve preference. Selecting one opens the shared watcher-management panel. |
 
-With no argument, `/matches` presents a watcher picker. IDs distinguish duplicate names; the user can select a watcher through buttons without memorizing IDs. `/slots` provides date-range controls within 0–60 days, source filters and chronological pagination of ten results per page; `/matches` uses the watcher's configured window. Results show retrieval time in Europe/Zurich. Here, current availability means slots open for booking at the moment of the check, not just sessions happening right now.
+There is no `/matches` command. The two routes Slots → Filter by watcher → select watcher and Watchers → select watcher → Show matching availability resolve to one shared view with the same selected-week and watcher parameters. They use the same query, renderer, matcher and callbacks, including for paused watchers or watchers with auto-reserve off. The watcher picker uses a name or filter summary; stable IDs distinguish duplicate names internally and do not have to be typed.
 
-Availability and reservation queries perform one bounded refresh of the necessary sources and never trigger auto-reserve or advance the watcher's notification history. `/watchers` and watcher settings read local persisted state without fetching the websites. Pagination uses the timestamped result snapshot; Refresh checks again. Global/per-watcher pause remains unchanged. A failed source is shown as unavailable or stale with its last successful check, never as zero matches; combined results are explicitly partial. Reservation recap must likewise disclose unsupported course reconciliation until implemented, and distinguish confirmed from uncertain operations.
+**Week navigation:** show the explicit Monday–Sunday date range in Europe/Zurich, with identical Previous week and Next week labels, order and behavior in Slots, filtered Slots and Reservations. Each changes the calendar week by seven local dates and resets within-week pagination. Commands initially open the current week. Choosing or clearing a watcher preserves the selected week; navigating weeks preserves the selected watcher. Filtered Slots displays the watcher name/summary, offers Filter by watcher to change it, and Show all slots to clear it. Returning from the picker or management panel preserves the caller's browsing context.
 
-General `/slots` results have Reserve (or the honest source-capability fallback) without an arbitrary watcher attached. A manual booking from this list does not create a watcher. Match results and watcher alerts use Reserve/Cancel plus Manage watcher. A reservation with several associated watchers presents a picker; an external/manual reservation with none has no watcher-management action. Resolve the shared reservation by slot ID so simultaneous cards cannot double-book it.
+The availability browser supports the current week through 60 days ahead, showing only future bookable occurrences within the selected week. The last week may be partial; label that limit. Previous week is inactive at the current-week boundary for availability. Reservations can browse retained past weeks and future weeks containing known reservations; past completed/cancelled entries have truthful status and no live cancellation action. Both browsers show the same week controls even for an empty week and never skip automatically to a week containing results. Omit actions outside the supported range while retaining their inactive navigation label. Unknown/unretained reservation history is labelled unavailable, not an empty confirmed history.
+
+Filtering by watcher intersects the selected week with the watcher's type, date/time and other filters, including its configured horizon. Browsing another week never changes the watcher or extends automatic booking authorization. Distinguish a week outside the watcher's configured date window from a valid week with no available matches. The unfiltered Slots view ignores all watcher filters. This replaces the previous proposal to display a 21-day list by default; 21 days remains the default watcher monitoring horizon.
+
+Availability and reservation queries perform one bounded refresh of the necessary sources for the selected week and never trigger auto-reserve or advance the watcher's notification history. Results show retrieval time and source coverage. `/watchers` and watcher settings read persisted state without fetching the websites. If a week needs more than ten results, paginate within that week with separate page controls; week controls always change the week. Page navigation uses the timestamped result snapshot; Refresh checks again. Global/per-watcher pause remains unchanged. A failed source is shown as unavailable or stale with its last successful check, never as zero matches; combined results are explicitly partial. Reservation recap must likewise disclose unsupported course reconciliation until implemented, and distinguish confirmed from uncertain operations.
+
+General Slots results have Reserve (or the honest source-capability fallback) without an arbitrary watcher attached. A manual booking from this list does not create a watcher. Watcher-filtered results and watcher alerts use Reserve/Cancel plus Manage watcher. Confirmed reservations have Cancel reservation; a reservation with several associated watchers presents a picker when Manage watcher is selected, while an external/manual reservation with none has no watcher-management action. Resolve the shared reservation by slot ID so simultaneous cards cannot double-book it.
 
 ## Suggested interaction
 
 Primary menu: **Slots · Watchers · Reservations · Pause · Settings**. Slots retain explicit Course/Nav labels. Creating a watcher first selects Course or Navigation libre, then displays only applicable filters, an optional name, and auto-reserve off by default. Weather stays separate in settings/menu shortcuts.
+
+```text
+Slots · 12–18 October 2026
+Filter: All slots
+…available sessions…
+[Previous week] [Next week]
+[Filter by watcher]
+```
+
+After choosing a watcher, including via its management panel:
+
+```text
+Slots · 12–18 October 2026
+Filter: Saturday afternoon · Navigation libre
+…matching available sessions…
+[Previous week] [Next week]
+[Filter by watcher] [Show all slots]
+```
+
+Reservations uses the same week header and Previous week / Next week row. Watchers lists Add watcher followed by one selectable entry per watcher. Selecting an entry or pressing Manage watcher below an alert opens the same panel.
 
 ```text
 Reserved: RS Aero · Navigation libre
@@ -249,7 +279,7 @@ Saturday afternoon
 Navigation libre · Saturdays · 14:00–18:00 · RS Aero
 Watcher: Running · Auto-reserve: On
 [Pause watcher] [Turn auto-reserve off]
-[Show matches] [Edit name / filters]
+[Show matching availability] [Edit name / filters]
 [Delete watcher] [Back]
 Deleting this watcher keeps your reservations.
 ```
@@ -281,7 +311,7 @@ The requested writing-plans stage follows review of this revised spec. Split wor
 1. Characterize existing parsers and state import using offline fixtures; retain the original JSON as a private backup.
 2. Introduce typed Course/Nav opportunities, Watcher, Reservation and the shared matcher. Convert global filters and pending requests into equivalent watchers, auto-reserve off; preserve per-boat legacy time constraints and real bookings. Do not mutate old state in place.
 3. Replace priority/swapping behavior with the reservation state machine, owner authorization, persistent auto preference, full pause, exclusion list and uncertainty recovery.
-4. Add the two-button notification cards, watcher-management panel, reservation recap and current availability/match commands; preserve temporary old-command aliases with explanations of the new semantics.
+4. Add the two-button notification cards, shared watcher-management panel and shared weekly Slots/Reservations navigation. Watcher filtering is a mode of Slots, accessible from its picker and the watcher panel; there is no separate matching-slots command. Preserve temporary old-command aliases with explanations of the new semantics.
 5. Validate real source flows when accounts permit, including the separate course capability. Report partial versus complete support explicitly.
 6. Adapt the tested core to the free-tier cloud lifecycle; benchmark before claiming sustainable $0 or at most $3/year. Preserve the hosting research, but regenerate feature implementation tasks from this spec after review.
 
@@ -289,14 +319,17 @@ The requested writing-plans stage follows review of this revised spec. Split wor
 
 - Course and Navigation libre retain their observed source interfaces and rules. Course instructor assignment is verified; Nav instructor filtering is withheld until per-occurrence data is verified. Do not assume quotas, credentials or internal backends are necessarily different or shared.
 - Optional watcher names do not affect identity or matching; one matcher governs notification and automatic action.
+- Slots and watchers share the `type: course|free_navigation` property; type-specific source behavior does not create duplicate user interfaces.
 - No p1–p9, preference-ordered boats, automatic cancellation, swaps or rollback engine remains in active behavior.
 - Pause causes zero scheduled source/weather requests, notifications or new automatic mutations after acknowledgement; settings and manual feedback work.
 - Auto-reserve persists after successful booking and changes only through an explicit user action or watcher lifecycle such as date-window expiry.
 - Reserve/Cancel buttons change only after a verified result; unavailable and uncertain outcomes are distinct.
 - Watcher alerts have Reserve/Cancel and Manage watcher only; pause/start, auto-reserve on/off and Delete watcher are inside management.
 - Deleting a watcher stops its automation, preserves bookings and other watchers, and invalidates stale management callbacks.
-- Reservations, all availability and watcher matches have explicit scope, source coverage and freshness; pagination exposes every result in the chosen horizon.
-- Manual queries do not enable watchers, auto-reserve, reset notification history or clear global pause. The same matcher powers `/matches`, notifications and automatic booking.
+- Slots and Reservations share Monday–Sunday week navigation in Europe/Zurich; empty weeks retain navigation. Filtering preserves the week, week changes preserve the watcher, and date-boundary/DST transitions use local calendar dates.
+- `/watchers` offers Add watcher and opens the same management panel as an alert. Show matching availability and Slots → Filter by watcher open the same filtered view; no `/matches` command is introduced.
+- Reservations and Slots have explicit scope, source coverage and freshness; within-week pagination exposes every result without changing the selected week or watcher.
+- Manual queries do not enable watchers, auto-reserve, reset notification history or clear global pause. One matcher powers filtered Slots, notifications and automatic booking.
 - Stop auto leaves reservations intact; cancellation leaves the watcher preference intact and cannot be undone by another watcher.
 - Concurrent/duplicate/stale actions cannot replay a booking or silently change a newer watcher preference.
 - Overlapping watcher cards have explicit scope and one shared underlying reservation.
