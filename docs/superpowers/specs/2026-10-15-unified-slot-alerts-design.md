@@ -1,5 +1,7 @@
 # SailingBot feature audit and watcher design
 
+> Working design retained as discussion/source-research history. Superseded by the [final consolidated design](2026-10-15-final-personal-bot-design.md) and [complete comparison audit](../reviews/2026-10-15-current-bot-comparison.md). In particular, the final audit distinguishes intentional old behavior from defects and flags non-equivalent migration.
+
 Date: 2026-10-15. Status: proposed design, not implemented. Based on inspection of `bot.py` at repository revision `cba5320`; no live account, entitlement or booking checks were performed.
 
 ## Intent

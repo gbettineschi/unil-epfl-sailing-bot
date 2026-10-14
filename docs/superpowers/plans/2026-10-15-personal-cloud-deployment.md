@@ -8,7 +8,7 @@
 
 **Tech stack:** Python 3.12, existing requests/BeautifulSoup/lxml parsing, Flask + Gunicorn for two HTTP endpoints, google-cloud-firestore, Google identity token verification, a slim container.
 
-**Spec:** [Revised watcher design and complete current feature audit](../specs/2026-10-15-unified-slot-alerts-design.md). The feature tasks from the earlier draft are withdrawn because the user has clarified pause behavior, persistent auto-reservation and watcher management. Detailed implementation tasks will be regenerated after review of the revised spec. Hosting fit is conditional on measurement; neither $0 nor a $3 annual ceiling has been demonstrated.
+**Spec:** [Final consolidated design](../specs/2026-10-15-final-personal-bot-design.md), with the [complete current-bot comparison](../reviews/2026-10-15-current-bot-comparison.md) and [local refactor delivery plan](2026-10-15-watcher-refactor-plan.md). Earlier feature tasks are superseded. Hosting fit is conditional on measurement; neither $0 nor a $3 annual ceiling has been demonstrated. This document is hosting research, not an executed deployment or a complete cloud implementation specification.
 
 ## Requirements and decisions
 
@@ -55,6 +55,6 @@ Set an alerts-only project budget to the annual $3 target (or monthly $0.25 equi
 
 ## Execution status
 
-Hosting research above remains useful. No app/cloud implementation has occurred. The next deliverable is a detailed implementation plan based on the revised watcher spec, following its review. Earlier instructions to turn auto-reserve off after success, keep fetching while paused, or collapse different source types are superseded.
+Hosting research above remains useful. No app/cloud implementation has occurred. The final design, complete comparison audit and local delivery plan are now documented. A separate detailed cloud implementation plan requires source-latency measurements and confirmed capabilities. Earlier instructions to turn auto-reserve off after success, keep fetching while paused, or collapse different source rules are superseded.
 
 The intended sequence is: characterize current behavior; implement and test watchers/reservation controls locally; verify supported source operations; then adapt to bounded Cloud Run requests and durable storage and measure costs. Deployment requires a usable Google account; source acceptance requires the relevant sailing entitlement. Neither is required for offline design and tests.
