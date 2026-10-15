@@ -1,12 +1,12 @@
 # Personal SailingBot Watchers Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. **Follow-up authorization, 2026-10-15:** the user requested environment/access setup, then development toward this design. See [development status](../../development.md) for the current stage and evidence.
+> **For implementers:** Follow this plan task-by-task, with failing tests before behavior changes. If Superpowers skills are available, use `executing-plans` or `subagent-driven-development`; the repository's tracked design, tests and progress remain sufficient without those tools. **Follow-up authorization, 2026-10-15:** the user requested environment/access setup, then development toward this design. See [development status](../../development.md) for the current stage and evidence.
 
 **Goal:** Replace separate alert filters and booking requests with the agreed personal watcher interface while retaining proven source mechanics and explicitly disclosing unsupported capabilities.
 
 **Architecture:** A small Python domain/matching layer, two source adapters, durable local state and a booking coordinator, and shared Telegram views. First retain local long polling and polling cadence; move the tested core to cloud in a separate stage.
 
-**Tech Stack:** Existing requests, BeautifulSoup and lxml; standard-library dataclasses, zoneinfo and unittest for the local refactor. Record the tested interpreter/dependency versions before changing the cloud runtime; the current README's Python 3.13 deployment and cloud draft's 3.12 are not established equivalent environments.
+**Tech Stack:** Existing requests, BeautifulSoup and lxml; standard-library dataclasses, zoneinfo and unittest for the local refactor. The local baseline uses Python 3.13.7 and `requirements.lock`; the cloud draft's 3.12 choice is provisional, not an established equivalent environment.
 
 **Spec:** [Final design](../specs/2026-10-15-final-personal-bot-design.md). **Required companion:** [complete comparison and audit](../reviews/2026-10-15-current-bot-comparison.md). The audit's optional recommendations are not implicit implementation requirements.
 
@@ -59,7 +59,7 @@ No generic plugin framework, ORM or speculative source abstraction beyond the tw
 **Interfaces:** define dataclasses/enums matching the spec: `Slot`, `Watcher`, `Reservation`, `TimeBounds(start_min, start_max, end_min, end_max)` using nullable integer minutes; `BrowserState(view, week_start, watcher_id, page)`; `Coverage(source, start, end, status, reason)` where status is complete/partial/unknown/error; `Snapshot(slots, reservations, coverage, verified_at)`; `MessageView(text, keyboard)`; `Outcome(status, reason, reservation)` with confirmed/unavailable/blocked/unsupported/uncertain states. Slot date-times are timezone-aware or explicitly unknown. Implement `matches(watcher: Watcher, slot: Slot, now: datetime) -> bool` and `shift_week(view: BrowserState, delta: int) -> BrowserState`; delta is -1 or +1.
 
 - [x] Write legacy characterization tests without constructing a credentialed bot: date aliases; fixed-date parsing; exact/any time; priority/boat ordering; four legacy time bounds/precedence; calendar-key stability; paused baseline; error versus empty scan. Preserve the audit's cancellation-error result as an explicitly named legacy defect, not expected behavior for new code.
-- [ ] Write failing new-domain tests asserting `18.52 / 1.852 == 10.0`, empty list means all, type mismatch is false, `Mar` matches `Marine`, exact start requires equal bounds, unknown required date/time fails, end constraints remain independent of start constraints, and recurrence differs from a fixed date.
+- [ ] Write failing new-domain tests asserting empty list means all, type mismatch is false, `Mar` matches `Marine`, exact start requires equal bounds, unknown required date/time fails, end constraints remain independent of start constraints, and recurrence differs from a fixed date. Retain the existing test against the real legacy wind conversion helper (`18.52 km/h` becomes `10.0 knots`); do not replace it with a test of constant arithmetic.
 - [ ] Test week transitions using local dates: week starting 2026-10-19 shifts to 2026-10-26 across the DST change, and 2026-12-28 shifts to 2027-01-04; watcher ID retained, page reset to zero.
 - [ ] Run `python -m unittest tests.test_legacy_behavior tests.test_model -v`; new-domain tests must initially fail for missing implementation while characterized legacy behavior remains reproducible.
 - [ ] Implement the declared domain and pure functions in `sailingbot/model.py`.
@@ -162,7 +162,7 @@ No generic plugin framework, ORM or speculative source abstraction beyond the tw
 - [ ] Run `python -m unittest discover -s tests -v`; verify no automatic swap path or priority selection remains active. Update help/docs to the actual supported capability level, retaining local/systemd fallback.
 - [ ] When authenticated access exists, inspect both source flows read-only, record publication horizons, instructor scope, source IDs, quota, partner rules and reservation discovery. Unknown features stay disabled/partial. Course implementation and free-window booking require a follow-up source-specific task based on observed forms; do not invent them now.
 - [ ] Use an actual-state migration preview and review its differences before importing. Keep original state untouched; switch one active booker at a time. A selected live reserve/cancel verification is separate from this plan's offline test commands and requires explicit booking scope.
-- [ ] Commit the validated local release only after the evidence supports its stated capabilities. No live/deployment work is authorized by the current request.
+- [ ] Commit the validated local release only after the evidence supports its stated capabilities. Publishing this planning/setup checkpoint to the personal fork is separate from a validated release, live mutation testing or deployment.
 
 ## Separate cloud stage
 
@@ -175,5 +175,7 @@ Acceptance includes a repeated scheduler invocation causing no duplicate booking
 ## Plan status
 
 2026-10-15 setup handoff: the owner cannot register for the course portal before paying for membership and may do so in several months. Website setup and live validation are deferred; no implementation stage is being marked complete. Telegram setup remains unfinished and can be done independently. The [development notes](../../development.md) contain the exact resume checklist and credential-field mapping.
+
+Repository handoff: preserve all current work on `gbettineschi-work/unil-epfl-sailing-bot` → `main`. Maintain this personal fork independently; no upstream contribution is requested. Resume with the remaining Task 1 domain/matcher work, not account setup as a prerequisite for every offline task.
 
 Setup and Task 1's legacy characterization are ready; no whole implementation task is complete. The design is consolidated; the audit identifies the decisions and source evidence that implementation must respect. Optional F01/F02/F06 changes need a design amendment if selected. Complete course booking, inaccessible source history and guaranteed free hosting are not represented as solved work.

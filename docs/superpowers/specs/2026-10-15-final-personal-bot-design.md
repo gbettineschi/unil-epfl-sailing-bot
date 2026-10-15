@@ -1,6 +1,6 @@
 # Personal SailingBot — final consolidated design
 
-Date: 2026-10-15. Design and audit only; no application changes, account actions or deployment authorized in this stage.
+Date: 2026-10-15. This specifies the intended personal version; it is not a claim of implementation. See [development status](../../development.md) for verified progress, deferred access and the current resume point.
 
 This consolidates the user's decisions and supersedes the earlier [working design](2026-10-15-unified-slot-alerts-design.md). Read it with the [complete comparison and risk audit](../reviews/2026-10-15-current-bot-comparison.md) and [delivery plan](../plans/2026-10-15-watcher-refactor-plan.md). The audit's recommendations are flags, not silently adopted changes to the agreed behavior.
 

@@ -6,7 +6,7 @@
 
 **Architecture:** One Python Cloud Run service, one Cloud Scheduler job, and a small Firestore state store. Telegram is the interface. Run a bounded monitoring cycle every five minutes and process commands through a webhook; do not keep Python running between requests.
 
-**Tech stack:** Python 3.12, existing requests/BeautifulSoup/lxml parsing, Flask + Gunicorn for two HTTP endpoints, google-cloud-firestore, Google identity token verification, a slim container.
+**Provisional cloud stack:** Python 3.12 was the initial draft runtime; the verified local baseline is now 3.13.7, so select and verify the cloud runtime before implementation. Candidate additions are Flask + Gunicorn for two HTTP endpoints, google-cloud-firestore, Google identity token verification and a slim container, alongside existing requests/BeautifulSoup/lxml parsing. These additions are not installed or implemented.
 
 **Spec:** [Final consolidated design](../specs/2026-10-15-final-personal-bot-design.md), with the [complete current-bot comparison](../reviews/2026-10-15-current-bot-comparison.md) and [local refactor delivery plan](2026-10-15-watcher-refactor-plan.md). Earlier feature tasks are superseded. Hosting fit is conditional on measurement; neither $0 nor a $3 annual ceiling has been demonstrated. This document is hosting research, not an executed deployment or a complete cloud implementation specification.
 

@@ -2,13 +2,13 @@
 
 Date: 2026-10-15. Baseline application revision: `cba5320`; documentation-only HEAD at audit start: `42faaa9`. Target: [final consolidated design](../specs/2026-10-15-final-personal-bot-design.md).
 
-This is an audit, not an implementation. No application, dependency, config, reservation, Telegram or cloud changes were made. Recommendations below do not override the user's design decisions. File/line references refer to the unchanged baseline `bot.py`.
+This records the pre-refactor audit; no application, dependency, config, reservation, Telegram or cloud changes were made during that audit. Later setup added a dependency lock and 17 offline characterization tests, as recorded in [development status](../../development.md). Recommendations below do not override the user's design decisions. File/line references refer to the unchanged baseline `bot.py`.
 
 ## 1. Scope, evidence and what “tested” means
 
 Inspected all 2,381 lines of `bot.py`, all 326 README lines, the full example configuration, dependencies, ignore rules, application Git history and the relevant historical diffs. The appendix inventories all 102 top-level functions and class methods; the nested `shown()` helper at line 1867 was also inspected. All 21 command entry points, 23 example config keys plus the additional supported `state_file` key and variable time rules, and all 14 persisted state keys are mapped below.
 
-No automated tests, HTML fixtures or CI configuration are tracked in this checkout or appeared in the available history search. This is not evidence that nobody tested the bot. There is specific evidence of manual testing and fixes:
+At the audit baseline, no automated tests, HTML fixtures or CI configuration were tracked or appeared in the available history search. The personal fork's later characterization tests do not establish live source behavior. There is specific historical evidence of manual testing and fixes:
 
 | History | Evidence of purpose / experience | How much it proves |
 | --- | --- | --- |
