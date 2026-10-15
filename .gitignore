@@ -8,3 +8,6 @@ venv/
 navigation_libre_authenticated.html
 state.json
 state.json.tmp
+.worktrees/
+.superpowers/
+.private/
