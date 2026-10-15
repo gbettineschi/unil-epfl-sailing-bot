@@ -1,6 +1,6 @@
 # Personal SailingBot Watchers Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. **Do not execute now: the user requested planning and audit only.**
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. **Follow-up authorization, 2026-10-15:** the user requested environment/access setup, then development toward this design. See [development status](../../development.md) for the current stage and evidence.
 
 **Goal:** Replace separate alert filters and booking requests with the agreed personal watcher interface while retaining proven source mechanics and explicitly disclosing unsupported capabilities.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Planning only in the present task; no product code, dependencies, config, booking or deployment changes.
+- The original planning-only stage is complete. Local setup and subsequent development are authorized; live mutation testing still requires an agreed real booking, and deployment is a later stage.
 - One owner/private Telegram chat; no web application or WhatsApp migration.
 - `type: course|free_navigation` on slot and watcher; source behavior remains distinct.
 - `/slots`, `/reservations`, `/watchers`; no `/matches`.
@@ -58,7 +58,7 @@ No generic plugin framework, ORM or speculative source abstraction beyond the tw
 
 **Interfaces:** define dataclasses/enums matching the spec: `Slot`, `Watcher`, `Reservation`, `TimeBounds(start_min, start_max, end_min, end_max)` using nullable integer minutes; `BrowserState(view, week_start, watcher_id, page)`; `Coverage(source, start, end, status, reason)` where status is complete/partial/unknown/error; `Snapshot(slots, reservations, coverage, verified_at)`; `MessageView(text, keyboard)`; `Outcome(status, reason, reservation)` with confirmed/unavailable/blocked/unsupported/uncertain states. Slot date-times are timezone-aware or explicitly unknown. Implement `matches(watcher: Watcher, slot: Slot, now: datetime) -> bool` and `shift_week(view: BrowserState, delta: int) -> BrowserState`; delta is -1 or +1.
 
-- [ ] Write legacy characterization tests without constructing a credentialed bot: date aliases; fixed-date parsing; exact/any time; priority/boat ordering; four legacy time bounds/precedence; calendar-key stability; paused baseline; error versus empty scan. Preserve the audit's cancellation-error result as an explicitly named legacy defect, not expected behavior for new code.
+- [x] Write legacy characterization tests without constructing a credentialed bot: date aliases; fixed-date parsing; exact/any time; priority/boat ordering; four legacy time bounds/precedence; calendar-key stability; paused baseline; error versus empty scan. Preserve the audit's cancellation-error result as an explicitly named legacy defect, not expected behavior for new code.
 - [ ] Write failing new-domain tests asserting `18.52 / 1.852 == 10.0`, empty list means all, type mismatch is false, `Mar` matches `Marine`, exact start requires equal bounds, unknown required date/time fails, end constraints remain independent of start constraints, and recurrence differs from a fixed date.
 - [ ] Test week transitions using local dates: week starting 2026-10-19 shifts to 2026-10-26 across the DST change, and 2026-12-28 shifts to 2027-01-04; watcher ID retained, page reset to zero.
 - [ ] Run `python -m unittest tests.test_legacy_behavior tests.test_model -v`; new-domain tests must initially fail for missing implementation while characterized legacy behavior remains reproducible.
@@ -174,4 +174,4 @@ Acceptance includes a repeated scheduler invocation causing no duplicate booking
 
 ## Plan status
 
-No task has been executed. The design is consolidated; the audit identifies the decisions and source evidence that implementation must respect. Optional F01/F02/F06 changes need a design amendment if selected. Complete course booking, inaccessible source history and guaranteed free hosting are not represented as solved work.
+Setup and Task 1's legacy characterization are ready; no whole implementation task is complete. The design is consolidated; the audit identifies the decisions and source evidence that implementation must respect. Optional F01/F02/F06 changes need a design amendment if selected. Complete course booking, inaccessible source history and guaranteed free hosting are not represented as solved work.
