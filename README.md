@@ -2,6 +2,8 @@
 
 Monitors the [UNIL/EPFL Centre Nautique](https://www2.unil.ch/sportres/nautique/) for available sailing course slots and sends a Telegram notification when one opens up.
 
+Personal watcher redesign: setup and 17 offline legacy tests are ready; application changes are pending. Website account setup is deferred until membership payment. See [development status and resume checklist](docs/development.md) before continuing this branch.
+
 ## Features
 
 - Checks course availability within a configurable lookahead window

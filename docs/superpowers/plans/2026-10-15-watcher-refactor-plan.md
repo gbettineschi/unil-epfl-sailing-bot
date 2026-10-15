@@ -174,4 +174,6 @@ Acceptance includes a repeated scheduler invocation causing no duplicate booking
 
 ## Plan status
 
+2026-10-15 setup handoff: the owner cannot register for the course portal before paying for membership and may do so in several months. Website setup and live validation are deferred; no implementation stage is being marked complete. Telegram setup remains unfinished and can be done independently. The [development notes](../../development.md) contain the exact resume checklist and credential-field mapping.
+
 Setup and Task 1's legacy characterization are ready; no whole implementation task is complete. The design is consolidated; the audit identifies the decisions and source evidence that implementation must respect. Optional F01/F02/F06 changes need a design amendment if selected. Complete course booking, inaccessible source history and guaranteed free hosting are not represented as solved work.
