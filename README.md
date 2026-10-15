@@ -37,7 +37,7 @@ The earlier working design is retained as research history and explicitly supers
 Use Python 3.13; the baseline was verified with 3.13.7. With [uv](https://docs.astral.sh/uv/):
 
 ```sh
-git clone git@github.com:gbettineschi-work/unil-epfl-sailing-bot.git
+git clone https://github.com/gbettineschi/unil-epfl-sailing-bot.git
 cd unil-epfl-sailing-bot
 uv venv --python 3.13 .venv
 uv pip install --python .venv/bin/python -r requirements.lock

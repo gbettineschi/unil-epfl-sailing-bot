@@ -1,6 +1,6 @@
 # Development status
 
-Updated 2026-10-15. Personal repository: [`gbettineschi-work/unil-epfl-sailing-bot`](https://github.com/gbettineschi-work/unil-epfl-sailing-bot), branch `main`. Original application baseline: `CartmanRolex/SailingBot` at `cba5320`.
+Updated 2026-10-15. Personal repository: [`gbettineschi/unil-epfl-sailing-bot`](https://github.com/gbettineschi/unil-epfl-sailing-bot), branch `main`. Original application baseline: `CartmanRolex/SailingBot` at `cba5320`.
 
 The [final design](superpowers/specs/2026-10-15-final-personal-bot-design.md), [audit](superpowers/reviews/2026-10-15-current-bot-comparison.md) and [implementation plan](superpowers/plans/2026-10-15-watcher-refactor-plan.md) remain the working references. This file records setup, verified progress and blockers.
 

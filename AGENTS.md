@@ -1,6 +1,6 @@
 # Working on the personal fork
 
-- This repository is `gbettineschi-work/unil-epfl-sailing-bot`, a personal fork of `CartmanRolex/SailingBot`. Push requested work to the personal fork; do not open upstream PRs or push upstream unless the owner explicitly requests it.
+- This repository is `gbettineschi/unil-epfl-sailing-bot`, a personal fork of `CartmanRolex/SailingBot`. Push requested work to the personal fork; do not open upstream PRs or push upstream unless the owner explicitly requests it.
 - Read `docs/development.md` first. It records current progress, access blockers, resume steps and the next unfinished task. The linked final design is authoritative; the earlier working design is historical.
 - Do not confuse planned features with implemented behavior. The original bot still contains priority-based swaps and incomplete pause semantics until the refactor actually replaces them.
 - Preserve tested source/parsing knowledge. Do not invent authenticated source capabilities; keep unverified booking, instructor and history support explicit.
